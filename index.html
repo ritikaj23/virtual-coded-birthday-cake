@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Saptha's Minecraft Birthday Cake — Dark Theme</title>
+<style>
+  :root{
+    --bg-dark:#0b0b0e;
+    --grid1:#121217;
+    --grid2:#0d0d12;
+    --accent:#00ff99;
+    --text:#eaeaea;
+    --panel:#15151a;
+    --border:#2a2a33;
+    --warn:#ffb300;
+    --err:#ff5252;
+    --ok:#4caf50;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:"Segoe UI", Tahoma, sans-serif;
+    color:var(--text);
+    background:var(--bg-dark);
+    overflow:hidden;
+  }
+
+  /* Dark Minecraft pixel vibe */
+  .bg{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      repeating-linear-gradient(to right, var(--grid1) 0 32px, var(--grid2) 32px 64px),
+      repeating-linear-gradient(to bottom, #1a1a22 0 32px, #0e0e14 32px 64px);
+    image-rendering: pixelated;
+  }
+
+  .container{display:grid; place-items:center; height:100%; padding:16px;}
+  .card{
+    background:rgba(21,21,26,0.9);
+    border:2px solid var(--border);
+    box-shadow:8px 8px 0 #000;
+    border-radius:10px;
+    padding:16px 20px;
+    width:min(720px, 92vw);
+    text-align:center;
+  }
+
+  .title{font-weight:800; font-size:1.7rem; color:var(--accent); margin:0 0 8px; text-shadow:2px 2px #000;}
+  .subtitle{margin:0 0 14px; opacity:0.85;}
+
+  /* Status line */
+  .status{display:flex; gap:10px; justify-content:center; align-items:center; font-size:0.95rem; margin-bottom:10px;}
+  .dot{width:10px; height:10px; border:2px solid #222; border-radius:2px; box-shadow:2px 2px 0 #00000050;}
+  .dot.ok{background:var(--ok)}
+  .dot.warn{background:var(--warn)}
+  .dot.err{background:var(--err)}
+  .meter{
+    width:180px; height:10px; border:2px solid #222; border-radius:4px; background:#0f0f14; overflow:hidden;
+  }
+  .bar{height:100%; width:0%; background:linear-gradient(90deg, #1de9b6, #00c853); transition:width 80ms linear;}
+
+  /* Controls */
+  .controls{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:10px 0 6px;}
+  .btn{border:2px solid #222; background:#1b1b22; color:var(--text); padding:8px 12px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; border-radius:8px; box-shadow:4px 4px 0 #00000050; cursor:pointer;}
+  .btn:active{transform:translate(2px,2px); box-shadow:2px 2px 0 #00000050;}
+  .btn.primary{background:#243b2f}
+  .select{border:2px solid #222; background:#1b1b22; color:var(--text); padding:8px; border-radius:8px;}
+
+  /* Scene */
+  .scene{position:relative; width:460px; height:340px; margin:0 auto; display:grid; place-items:end center;}
+  .plate{position:relative; width:380px; height:22px; background:#4a4a56; border:2px solid #222; border-radius:6px; box-shadow:inset 0 -6px 0 #333;}
+  .cake{
+    position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+    width:300px; height:160px; border:2px solid #222; border-radius:6px;
+    background:
+      linear-gradient(to bottom, #fff 0 22%, transparent 22%),
+      repeating-linear-gradient(to right, #b56565 0 18px, #8c4c4c 18px 36px);
+    box-shadow:6px 6px 0 #000;
+  }
+  .candle{
+    position:absolute; bottom:168px; left:50%; transform:translateX(-50%);
+    width:22px; height:70px; border:2px solid #222; border-radius:2px;
+    background:repeating-linear-gradient(to right,#3ab1ff 0 6px,#2c91d1 6px 12px);
+    box-shadow:3px 3px 0 #00000050;
+  }
+  .wick{
+    position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+    width:3px; height:10px; background:#333; border:2px solid #222; border-radius:2px;
+  }
+  .flame{
+    position:absolute; top:-26px; left:50%; transform:translateX(-50%);
+    width:22px; height:28px; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    background:radial-gradient(ellipse at center,#ffd33d 0 40%,#ff8c00 41% 100%);
+    border:2px solid #222; animation:flicker 120ms infinite alternate;
+    filter:drop-shadow(0 0 6px #ffb300);
+  }
+  @keyframes flicker{0%{transform:translateX(-50%) scale(1) rotate(-2deg)}100%{transform:translateX(-50%) scale(1.05) rotate(2deg)}}
+  .flame.off{display:none}
+
+  /* Message revealed */
+  .message{
+    display:none; margin-top:16px; padding:12px; background:#111; border:2px solid var(--accent);
+    border-radius:8px; color:var(--text); font-size:0.96rem; text-align:left; white-space:pre-line;
+  }
+  .message.show{display:block}
+
+  /* Characters */
+  .characters{display:flex; justify-content:center; gap:14px; margin-top:14px;}
+  .char{width:56px; height:56px; border:2px solid #222; image-rendering:pixelated; box-shadow:2px 2px 0 #000;}
+  /* Simple blocky avatars without external images for reliability */
+  .char.steve{background:
+      linear-gradient(#6aa5ff 0 60%, #7a5c3a 60% 100%);}
+  .char.alex{background:
+      linear-gradient(#79c26a 0 60%, #e59f6b 60% 100%);}
+  .char.creeper{background:
+      repeating-linear-gradient(45deg,#2ecc71 0 12px,#27ae60 12px 24px); position:relative;}
+  .char.creeper::before,.char.creeper::after{
+    content:""; position:absolute; background:#0b0b0e; width:10px; height:10px; top:14px; border:2px solid #222;
+  }
+  .char.creeper::before{left:12px}
+  .char.creeper::after{right:12px}
+  .name{margin-top:8px; font-weight:700; color:var(--accent);}
+
+  /* Relight hint */
+  .relight{position:absolute; bottom:205px; left:50%; transform:translateX(-50%);
+    font-size:0.85rem; background:rgba(21,21,26,0.9); border:2px solid var(--border);
+    border-radius:6px; padding:4px 8px; box-shadow:4px 4px 0 #00000050; display:none;}
+  .relight.show{display:block}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+<div class="container">
+  <div class="card">
+    <h2 class="title">Happy Birthday Sapthashree!</h2>
+    <p class="subtitle">Blow towards your mic to extinguish the candle. Click the cake to relight.</p>
+
+    <div class="status">
+      <span class="dot err" id="micDot" title="Microphone status"></span>
+      <span id="micText">Microphone: Not initialized</span>
+      <div class="meter" title="Live input level"><div class="bar" id="levelBar"></div></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="initBtn">Enable mic</button>
+      <select class="select" id="deviceSelect" title="Input device">
+        <option value="">Default microphone</option>
+      </select>
+      <button class="btn" id="sensDown">Sensitivity -</button>
+      <button class="btn" id="sensUp">Sensitivity +</button>
+      <button class="btn" id="resetBtn">Relight candle</button>
+    </div>
+
+    <div class="scene" id="scene" aria-label="Birthday cake scene" role="img">
+      <div class="relight" id="relight">Candle is out. Click the cake to relight.</div>
+      <div class="plate"></div>
+      <div class="cake" id="cake"></div>
+      <div class="candle" id="candle">
+        <div class="wick"></div>
+        <div class="flame" id="flame" aria-hidden="false"></div>
+      </div>
+    </div>
+
+    <div class="message" id="message">
+Happy Birthday, Sapthashree!
+Wishing you a day filled with happiness, laughter, and beautiful moments.
+May this year bring you new opportunities, success in everything you do, and lots of positivity.
+Thank you for being such a great colleague and a wonderful person to work with.
+Have an amazing year ahead! 🌸✨    </div>
+
+    <div class="characters">
+      <div class="char steve" title="Steve"></div>
+      <div class="char alex" title="Alex"></div>
+      <div class="char creeper" title="Creeper"></div>
+    </div>
+
+    <div class="name">From TA Team to Saptha</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const initBtn = document.getElementById('initBtn');
+  const deviceSelect = document.getElementById('deviceSelect');
+  const sensUp = document.getElementById('sensUp');
+  const sensDown = document.getElementById('sensDown');
+  const resetBtn = document.getElementById('resetBtn');
+  const micDot = document.getElementById('micDot');
+  const micText = document.getElementById('micText');
+  const levelBar = document.getElementById('levelBar');
+  const flame = document.getElementById('flame');
+  const cake = document.getElementById('cake');
+  const relight = document.getElementById('relight');
+  const message = document.getElementById('message');
+
+  let audioCtx, analyser, micStream, source, dataArray, rafId = null;
+  let selectedDeviceId = "";
+  const profiles = [
+    { name:"Low", threshold:0.18, windowMs:260 },
+    { name:"Medium", threshold:0.12, windowMs:220 },
+    { name:"High", threshold:0.08, windowMs:180 },
+    { name:"Very High", threshold:0.06, windowMs:150 }
+  ];
+  let profileIndex = 1;
+
+  function setMicStatus(levelClass, text){
+    micDot.className = "dot " + levelClass;
+    micText.textContent = "Microphone: " + text;
+  }
+
+  function updateLevelBar(rms){
+    const pct = Math.min(100, Math.max(0, Math.round(rms * 300)));
+    levelBar.style.width = pct + "%";
+    if (pct > 60) micDot.className = "dot warn";
+    else micDot.className = "dot ok";
+  }
+
+  async function listDevices(){
+    try{
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputs = devices.filter(d => d.kind === "audioinput");
+      deviceSelect.innerHTML = '<option value="">Default microphone</option>';
+      inputs.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.textContent = d.label || `Mic ${inputs.indexOf(d)+1}`;
+        deviceSelect.appendChild(opt);
+      });
+    }catch(e){
+      // Ignore; labels require permission first
+    }
+  }
+
+  function cleanup(){
+    cancelAnimationFrame(rafId);
+    rafId = null;
+    if (source) try { source.disconnect(); } catch {}
+    if (micStream) {
+      micStream.getTracks().forEach(t => t.stop());
+    }
+    source = null; micStream = null; analyser = null; dataArray = null;
+  }
+
+  async function initMic(){
+    try{
+      cleanup();
+
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") await audioCtx.resume();
+
+      const constraints = {
+        audio: {
+          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
+        video: false
+      };
+
+      micStream = await navigator.mediaDevices.getUserMedia(constraints);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 1024;
+      dataArray = new Float32Array(analyser.fftSize);
+
+      source = audioCtx.createMediaStreamSource(micStream);
+      source.connect(analyser);
+
+      setMicStatus("ok", "Active");
+      listDevices(); // now labels are available
+      startDetect();
+    }catch(e){
+      console.error(e);
+      setMicStatus("err", e.name === "NotReadableError" ? "Mic is in use by another app" :
+                           e.name === "NotAllowedError" ? "Permission denied" :
+                           e.name === "OverconstrainedError" ? "Selected device not found" :
+                           "Unavailable");
+    }
+  }
+
+  function computeRMS(){
+    analyser.getFloatTimeDomainData(dataArray);
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
+    return Math.sqrt(sum / dataArray.length);
+  }
+
+  function extinguish(){
+    flame.classList.add('off');
+    relight.classList.add('show');
+    message.classList.add('show');
+    flame.setAttribute('aria-hidden','true');
+  }
+  function relightCandle(){
+    flame.classList.remove('off');
+    relight.classList.remove('show');
+    message.classList.remove('show');
+    flame.setAttribute('aria-hidden','false');
+  }
+
+  function startDetect(){
+    const p = profiles[profileIndex];
+    const windowSamples = Math.max(3, Math.round((p.windowMs/1000) * 60));
+    let queue = [];
+    cancelAnimationFrame(rafId);
+
+    const loop = () => {
+      const rms = computeRMS();
+      queue.push(rms);
+      if (queue.length > windowSamples) queue.shift();
+      const avg = queue.reduce((a,b)=>a+b,0)/queue.length;
+
+      updateLevelBar(avg);
+
+      if (!flame.classList.contains('off') && avg > p.threshold) {
+        extinguish();
+      }
+      rafId = requestAnimationFrame(loop);
+    };
+    loop();
+  }
+
+  // UI events
+  initBtn.addEventListener('click', initMic);
+  deviceSelect.addEventListener('change', (e) => {
+    selectedDeviceId = e.target.value || "";
+    initMic();
+  });
+  sensUp.addEventListener('click', () => {
+    profileIndex = Math.min(profiles.length - 1, profileIndex + 1);
+  });
+  sensDown.addEventListener('click', () => {
+    profileIndex = Math.max(0, profileIndex - 1);
+  });
+  cake.addEventListener('click', relightCandle);
+  resetBtn.addEventListener('click', relightCandle);
+
+  // Resume audio when tab becomes active
+  document.addEventListener('visibilitychange', async () => {
+    if (!audioCtx) return;
+    if (!document.hidden && audioCtx.state === "suspended") {
+      try { await audioCtx.resume(); } catch {}
+    }
+  });
+
+  // Pre-list devices (will show labels after permission)
+  listDevices();
+})();
+</script>
+</body>
+</html>
+
